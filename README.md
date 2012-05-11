@@ -2,7 +2,7 @@
 
 Very simple git-based deployment for fabric.
 
-Git pulling from a remote repository requires that you open your repository to the world. Since git is distributed you can push from your repository and limit access to your private repositories to your internal network but still get lightning fast git deployments.
+Git pulling from a remote repository requires that you open your repository to the world and it means your deployment process relies on one more moving piece. Since git is distributed you can push from your local repository and rely on one fewer external resource and limit access to your private repositories to your internal network but still get lightning fast git deployments.
 
 ## Installation ##
 
