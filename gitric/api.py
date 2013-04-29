@@ -20,7 +20,7 @@ def git_seed(repo_path, commit=None):
     '''seed a remote git repository'''
     commit = _get_commit(commit)
     force = ('gitric_force_push' in env) and '-f' or ''
-    dirty_working_copy = local('git status --porcelain', capture=True)
+    dirty_working_copy = local('git status --untracked-files=no --porcelain', capture=True)
     if dirty_working_copy and 'gitric_allow_dirty' not in env:
         abort(
             'Working copy is dirty. This check can be overridden by\n'
