@@ -16,11 +16,12 @@ def force_push():
     env.gitric_force_push = True
 
 
-def git_seed(repo_path, commit=None):
+def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     '''seed a remote git repository'''
     commit = _get_commit(commit)
     force = ('gitric_force_push' in env) and '-f' or ''
-    dirty_working_copy = local('git status --untracked-files=no --porcelain', capture=True)
+
+    dirty_working_copy = _is_dirty(commit, ignore_untracked_files)
     if dirty_working_copy and 'gitric_allow_dirty' not in env:
         abort(
             'Working copy is dirty. This check can be overridden by\n'
@@ -58,3 +59,8 @@ def _get_commit(commit):
         # if no commit is specified we will push HEAD
         commit = local('git rev-parse HEAD', capture=True)
     return commit
+
+
+def _is_dirty(commit, ignore_untracked_files):
+    untracked_files = '--untracked-files=no' if ignore_untracked_files else '' 
+    return local('git status %s --porcelain' % untracked_files, capture=True)
