@@ -63,4 +63,4 @@ def _get_commit(commit):
 
 def _is_dirty(commit, ignore_untracked_files):
     untracked_files = '--untracked-files=no' if ignore_untracked_files else '' 
-    return local('git status %s --porcelain' % untracked_files, capture=True)
+    return local('git status %s --porcelain' % untracked_files, capture=True) != ''
