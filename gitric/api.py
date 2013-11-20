@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from fabric.state import env
-from fabric.api import local, run, abort, task
+from fabric.api import local, run, abort, task, cd, puts
 from fabric.context_managers import settings
 
 
@@ -29,6 +29,13 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
             'call.')
     # initialize the remote repository (idempotent)
     run('git init %s' % repo_path)
+
+    # finis execution if remote git it's already on commit.
+    with cd(repo_path):
+        if run('git rev-parse HEAD') == commit:
+            puts('Remote already on commit %s' % commit)
+            return
+
     # silence git complaints about pushes coming in on the current branch
     # the pushes only seed the immutable object store and do not modify the
     # working copy
