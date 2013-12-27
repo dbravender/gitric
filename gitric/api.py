@@ -33,12 +33,10 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     # initialize the remote repository (idempotent)
     run('git init %s' % repo_path)
 
-    # finis execution if remote git it's already on commit.
-    with settings(warn_only=True):
-        with cd(repo_path):
-            if run('git rev-parse HEAD') == commit:
-                puts('Remote already on commit %s' % commit)
-                return
+    # finish execution if remote repository has commit already
+    if git_exists(repo_path, commit):
+        puts('Commit %s exists already' % commit)
+        return
 
     # silence git complaints about pushes coming in on the current branch
     # the pushes only seed the immutable object store and do not modify the
@@ -57,6 +55,15 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
             'push. The seed will abort so you don\'t lose information. '
             'If you are doing this\nintentionally import '
             'gitric.api.force_push and add it to your call.' % commit)
+
+
+def git_exists(repo_path, commit):
+    """ check if the specified commit exists in the repository [remote] """
+
+    with cd(repo_path):
+        if run('git rev-list --max-count=1 %s' % commit,
+               warn_only=True, quiet=True).succeeded:
+            return True
 
 
 def git_reset(repo_path, commit=None):
