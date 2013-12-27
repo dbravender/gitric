@@ -18,7 +18,10 @@ def force_push():
 
 def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     '''seed a remote git repository'''
-    commit = _get_commit(commit)
+
+    # use specified commit or HEAD
+    commit = commit or git_head_rev()
+
     force = ('gitric_force_push' in env) and '-f' or ''
 
     dirty_working_copy = _is_dirty(ignore_untracked_files)
@@ -58,15 +61,16 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
 
 def git_reset(repo_path, commit=None):
     '''checkout a sha1 on a remote git repo'''
-    commit = _get_commit(commit)
+
+    # use specified commit or HEAD
+    commit = commit or git_head_rev()
+
     run('cd %s && git reset --hard %s' % (repo_path, commit))
 
 
-def _get_commit(commit):
-    if commit is None:
-        # if no commit is specified we will push HEAD
-        commit = local('git rev-parse HEAD', capture=True)
-    return commit
+def git_head_rev():
+    """ find the commit that is currently checked out [local] """
+    return local('git rev-parse HEAD', capture=True)
 
 
 def _is_dirty(ignore_untracked_files):
