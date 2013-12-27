@@ -3,6 +3,7 @@ from fabric.state import env
 from fabric.api import local, run, abort, task, cd, puts
 from fabric.context_managers import settings
 from fabric.contrib.files import exists
+from fabric.colors import green
 
 
 @task
@@ -24,7 +25,7 @@ def git_init(repo_path):
     if exists('%s/.git' % repo_path):
         return
 
-    puts('Creating new git repository %s' % repo_path)
+    puts(green('Creating new git repository ') + repo_path)
 
     # create repository folder if necessary
     run('mkdir -p %s' % repo_path, quiet=True)
@@ -57,11 +58,14 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
 
     # finish execution if remote repository has commit already
     if git_exists(repo_path, commit):
-        puts('Commit %s exists already' % commit)
+        puts(green('Commit ') + commit + green(' exists already'))
         return
 
     # a target doesn't need to keep track of which branch it is on so we always
     # push to its "master"
+
+    puts(green('Pushing commit ') + commit)
+
     with settings(warn_only=True):
         force = ('gitric_force_push' in env) and '-f' or ''
         push = local(
@@ -90,6 +94,8 @@ def git_reset(repo_path, commit=None):
 
     # use specified commit or HEAD
     commit = commit or git_head_rev()
+
+    puts(green('Resetting to commit ') + commit)
 
     # reset the repository and working directory
     with cd(repo_path):
