@@ -42,11 +42,6 @@ def git_init(repo_path):
 def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     '''seed a remote git repository'''
 
-    # use specified commit or HEAD
-    commit = commit or git_head_rev()
-
-    force = ('gitric_force_push' in env) and '-f' or ''
-
     dirty_working_copy = _is_dirty(ignore_untracked_files)
     if dirty_working_copy:
         abort(
@@ -57,6 +52,9 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     # check if the remote repository exists and create it if necessary
     git_init(repo_path)
 
+    # use specified commit or HEAD
+    commit = commit or git_head_rev()
+
     # finish execution if remote repository has commit already
     if git_exists(repo_path, commit):
         puts('Commit %s exists already' % commit)
@@ -65,9 +63,11 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     # a target doesn't need to keep track of which branch it is on so we always
     # push to its "master"
     with settings(warn_only=True):
+        force = ('gitric_force_push' in env) and '-f' or ''
         push = local(
             'git push git+ssh://%s@%s:%s%s %s:refs/heads/master %s' % (
                 env.user, env.host, env.port, repo_path, commit, force))
+
     if push.failed:
         abort(
             '%s is a non-fast-forward\n'
