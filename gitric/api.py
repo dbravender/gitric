@@ -2,6 +2,7 @@ from __future__ import with_statement
 from fabric.state import env
 from fabric.api import local, run, abort, task, cd, puts
 from fabric.context_managers import settings
+from fabric.contrib.files import exists
 
 
 @task
@@ -14,6 +15,28 @@ def allow_dirty():
 def force_push():
     '''allow pushing even when history will be lost'''
     env.gitric_force_push = True
+
+
+def git_init(repo_path):
+    """ create a git repository if necessary [remote] """
+
+    # check if it is a git repository yet
+    if exists('%s/.git' % repo_path):
+        return
+
+    puts('Creating new git repository %s' % repo_path)
+
+    # create repository folder if necessary
+    run('mkdir -p %s' % repo_path, quiet=True)
+
+    with cd(repo_path):
+        # initialize the remote repository
+        run('git init')
+
+        # silence git complaints about pushes coming in on the current branch
+        # the pushes only seed the immutable object store and do not modify the
+        # working copy
+        run('git config receive.denyCurrentBranch ignore')
 
 
 def git_seed(repo_path, commit=None, ignore_untracked_files=False):
@@ -30,19 +53,15 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
             'Working copy is dirty. This check can be overridden by\n'
             'importing gitric.api.allow_dirty and adding allow_dirty to your '
             'call.')
-    # initialize the remote repository (idempotent)
-    run('git init %s' % repo_path)
+
+    # check if the remote repository exists and create it if necessary
+    git_init(repo_path)
 
     # finish execution if remote repository has commit already
     if git_exists(repo_path, commit):
         puts('Commit %s exists already' % commit)
         return
 
-    # silence git complaints about pushes coming in on the current branch
-    # the pushes only seed the immutable object store and do not modify the
-    # working copy
-    run('GIT_DIR=%s/.git git config receive.denyCurrentBranch ignore' %
-        repo_path)
     # a target doesn't need to keep track of which branch it is on so we always
     # push to its "master"
     with settings(warn_only=True):
