@@ -65,7 +65,9 @@ def git_reset(repo_path, commit=None):
     # use specified commit or HEAD
     commit = commit or git_head_rev()
 
-    run('cd %s && git reset --hard %s' % (repo_path, commit))
+    # reset the repository and working directory
+    with cd(repo_path):
+        run('git reset --hard %s' % commit)
 
 
 def git_head_rev():
