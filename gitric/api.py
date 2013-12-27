@@ -8,13 +8,13 @@ from fabric.colors import green
 
 @task
 def allow_dirty():
-    '''allow pushing even when the working copy is dirty'''
+    """ allow pushing even when the working copy is dirty """
     env.gitric_allow_dirty = True
 
 
 @task
 def force_push():
-    '''allow pushing even when history will be lost'''
+    """ allow pushing even when history will be lost """
     env.gitric_force_push = True
 
 
@@ -41,8 +41,9 @@ def git_init(repo_path):
 
 
 def git_seed(repo_path, commit=None, ignore_untracked_files=False):
-    '''seed a remote git repository'''
+    """ seed a git repository (and create if necessary) [remote] """
 
+    # check if the local repository is dirty
     dirty_working_copy = _is_dirty(ignore_untracked_files)
     if dirty_working_copy:
         abort(
@@ -61,8 +62,10 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
         puts(green('Commit ') + commit + green(' exists already'))
         return
 
-    # a target doesn't need to keep track of which branch it is on so we always
-    # push to its "master"
+    # push the commit to the remote repository
+    #
+    # (note that pushing to the master branch will not change the contents
+    # of the working directory)
 
     puts(green('Pushing commit ') + commit)
 
@@ -90,7 +93,7 @@ def git_exists(repo_path, commit):
 
 
 def git_reset(repo_path, commit=None):
-    '''checkout a sha1 on a remote git repo'''
+    """ reset the working directory to a specific commit [remote] """
 
     # use specified commit or HEAD
     commit = commit or git_head_rev()
@@ -108,6 +111,8 @@ def git_head_rev():
 
 
 def _is_dirty(ignore_untracked_files):
+    """ check if there are modifications in the repository [local] """
+
     if 'gitric_allow_dirty' in env:
         return False
 
