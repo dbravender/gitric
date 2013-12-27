@@ -21,8 +21,8 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     commit = _get_commit(commit)
     force = ('gitric_force_push' in env) and '-f' or ''
 
-    dirty_working_copy = _is_dirty(commit, ignore_untracked_files)
-    if dirty_working_copy and 'gitric_allow_dirty' not in env:
+    if 'gitric_allow_dirty' not in env and \
+            _is_dirty(commit, ignore_untracked_files)):
         abort(
             'Working copy is dirty. This check can be overridden by\n'
             'importing gitric.api.allow_dirty and adding allow_dirty to your '
