@@ -22,7 +22,7 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     force = ('gitric_force_push' in env) and '-f' or ''
 
     dirty_working_copy = _is_dirty(ignore_untracked_files)
-    if dirty_working_copy and 'gitric_allow_dirty' not in env:
+    if dirty_working_copy:
         abort(
             'Working copy is dirty. This check can be overridden by\n'
             'importing gitric.api.allow_dirty and adding allow_dirty to your '
@@ -70,5 +70,8 @@ def _get_commit(commit):
 
 
 def _is_dirty(ignore_untracked_files):
+    if 'gitric_allow_dirty' in env:
+        return False
+
     untracked_files = '--untracked-files=no' if ignore_untracked_files else ''
     return local('git status %s --porcelain' % untracked_files, capture=True) != ''
