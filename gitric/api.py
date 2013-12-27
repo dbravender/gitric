@@ -44,7 +44,7 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
     """ seed a git repository (and create if necessary) [remote] """
 
     # check if the local repository is dirty
-    dirty_working_copy = _is_dirty(ignore_untracked_files)
+    dirty_working_copy = git_is_dirty(ignore_untracked_files)
     if dirty_working_copy:
         abort(
             'Working copy is dirty. This check can be overridden by\n'
@@ -110,7 +110,7 @@ def git_head_rev():
     return local('git rev-parse HEAD', capture=True)
 
 
-def _is_dirty(ignore_untracked_files):
+def git_is_dirty(ignore_untracked_files):
     """ check if there are modifications in the repository [local] """
 
     if 'gitric_allow_dirty' in env:
