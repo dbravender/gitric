@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from fabric.state import env
-from fabric.api import local, run, abort, task, cd, puts
+from fabric.api import local, run, sudo, abort, task, cd, puts
 from fabric.context_managers import settings
 from fabric.contrib.files import exists
 from fabric.colors import green
@@ -18,7 +18,7 @@ def force_push():
     env.gitric_force_push = True
 
 
-def git_init(repo_path):
+def git_init(repo_path, use_sudo=False):
     """ create a git repository if necessary [remote] """
 
     # check if it is a git repository yet
@@ -28,7 +28,12 @@ def git_init(repo_path):
     puts(green('Creating new git repository ') + repo_path)
 
     # create repository folder if necessary
-    run('mkdir -p %s' % repo_path, quiet=True)
+    if use_sudo:
+        runnable = sudo
+    else:
+        runnable = run
+
+    runnable('mkdir -p %s' % repo_path, quiet=True)
 
     with cd(repo_path):
         # initialize the remote repository
@@ -37,10 +42,11 @@ def git_init(repo_path):
         # silence git complaints about pushes coming in on the current branch
         # the pushes only seed the immutable object store and do not modify the
         # working copy
-        run('git config receive.denyCurrentBranch ignore')
+        runnable('git config receive.denyCurrentBranch ignore')
 
 
-def git_seed(repo_path, commit=None, ignore_untracked_files=False):
+def git_seed(repo_path, commit=None, ignore_untracked_files=False,
+             use_sudo=False):
     """ seed a git repository (and create if necessary) [remote] """
 
     # check if the local repository is dirty
@@ -52,13 +58,13 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
             'call.')
 
     # check if the remote repository exists and create it if necessary
-    git_init(repo_path)
+    git_init(repo_path, use_sudo=use_sudo)
 
     # use specified commit or HEAD
     commit = commit or git_head_rev()
 
     # finish execution if remote repository has commit already
-    if git_exists(repo_path, commit):
+    if git_exists(repo_path, commit, use_sudo=use_sudo):
         puts(green('Commit ') + commit + green(' exists already'))
         return
 
@@ -83,16 +89,21 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False):
             'gitric.api.force_push and add it to your call.' % commit)
 
 
-def git_exists(repo_path, commit):
+def git_exists(repo_path, commit, use_sudo=False):
     """ check if the specified commit exists in the repository [remote] """
 
     with cd(repo_path):
-        if run('git rev-list --max-count=1 %s' % commit,
+        if use_sudo:
+            runnable = sudo
+        else:
+            runnable = run
+
+        if runnable('git rev-list --max-count=1 %s' % commit,
                warn_only=True, quiet=True).succeeded:
             return True
 
 
-def git_reset(repo_path, commit=None):
+def git_reset(repo_path, commit=None, use_sudo=False):
     """ reset the working directory to a specific commit [remote] """
 
     # use specified commit or HEAD
@@ -102,7 +113,12 @@ def git_reset(repo_path, commit=None):
 
     # reset the repository and working directory
     with cd(repo_path):
-        run('git reset --hard %s' % commit)
+        if use_sudo:
+            runnable = sudo
+        else:
+            runnable = run
+
+        runnable('git reset --hard %s' % commit)
 
 
 def git_head_rev():
