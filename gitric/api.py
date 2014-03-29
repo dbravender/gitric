@@ -34,7 +34,7 @@ def git_init(repo_path, use_sudo=False):
 
     with cd(repo_path):
         # initialize the remote repository
-        run('git init')
+        func('git init')
 
         # silence git complaints about pushes coming in on the current branch
         # the pushes only seed the immutable object store and do not modify the
