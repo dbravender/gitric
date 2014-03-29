@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from fabric.state import env
-from fabric.api import local, run, sudo, abort, task, cd, puts
+from fabric.api import (local, run, sudo, abort, task, cd, puts)
 from fabric.context_managers import settings
 from fabric.contrib.files import exists
 from fabric.colors import green
@@ -27,13 +27,10 @@ def git_init(repo_path, use_sudo=False):
 
     puts(green('Creating new git repository ') + repo_path)
 
-    # create repository folder if necessary
-    if use_sudo:
-        runnable = sudo
-    else:
-        runnable = run
+    func = sudo if use_sudo else run
 
-    runnable('mkdir -p %s' % repo_path, quiet=True)
+    # create repository folder if necessary
+    func('mkdir -p %s' % repo_path, quiet=True)
 
     with cd(repo_path):
         # initialize the remote repository
@@ -42,7 +39,7 @@ def git_init(repo_path, use_sudo=False):
         # silence git complaints about pushes coming in on the current branch
         # the pushes only seed the immutable object store and do not modify the
         # working copy
-        runnable('git config receive.denyCurrentBranch ignore')
+        func('git config receive.denyCurrentBranch ignore')
 
 
 def git_seed(repo_path, commit=None, ignore_untracked_files=False,
@@ -93,13 +90,9 @@ def git_exists(repo_path, commit, use_sudo=False):
     """ check if the specified commit exists in the repository [remote] """
 
     with cd(repo_path):
-        if use_sudo:
-            runnable = sudo
-        else:
-            runnable = run
-
-        if runnable('git rev-list --max-count=1 %s' % commit,
-               warn_only=True, quiet=True).succeeded:
+        func = sudo if use_sudo else run
+        if func('git rev-list --max-count=1 %s' % commit,
+                warn_only=True, quiet=True).succeeded:
             return True
 
 
@@ -113,12 +106,8 @@ def git_reset(repo_path, commit=None, use_sudo=False):
 
     # reset the repository and working directory
     with cd(repo_path):
-        if use_sudo:
-            runnable = sudo
-        else:
-            runnable = run
-
-        runnable('git reset --hard %s' % commit)
+        func = sudo if use_sudo else run
+        func('git reset --hard %s' % commit)
 
 
 def git_head_rev():
