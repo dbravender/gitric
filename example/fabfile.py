@@ -2,7 +2,7 @@ import sys
 sys.path.append('../')
 from fabric.api import task
 from fabric.state import env
-from gitric.api import git_seed, git_reset, allow_dirty, force_push
+from gitric.api import git_seed, git_reset, allow_dirty, force_push  # noqa
 
 
 @task

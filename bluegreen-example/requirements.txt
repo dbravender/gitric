@@ -1,0 +1,12 @@
+Fabric==1.9.0
+Flask==0.10.1
+Jinja2==2.7.3
+MarkupSafe==0.23
+Werkzeug==0.9.6
+argparse==1.2.1
+ecdsa==0.11
+gunicorn==19.0.0
+itsdangerous==0.24
+paramiko==1.14.0
+pycrypto==2.6.1
+wsgiref==0.1.2
