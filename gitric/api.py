@@ -63,11 +63,6 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False,
     # use specified commit or HEAD
     commit = commit or git_head_rev()
 
-    # finish execution if remote repository has commit already
-    if git_exists(repo_path, commit, use_sudo=use_sudo):
-        puts(green('Commit ') + commit + green(' exists already'))
-        return
-
     # push the commit to the remote repository
     #
     # (note that pushing to the master branch will not change the contents
@@ -87,16 +82,6 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False,
             'push. The seed will abort so you don\'t lose information. '
             'If you are doing this\nintentionally import '
             'gitric.api.force_push and add it to your call.' % commit)
-
-
-def git_exists(repo_path, commit, use_sudo=False):
-    """ check if the specified commit exists in the repository [remote] """
-
-    with cd(repo_path):
-        func = sudo if use_sudo else run
-        if func('git rev-list --max-count=1 %s' % commit,
-                warn_only=True, quiet=True).succeeded:
-            return True
 
 
 def git_reset(repo_path, commit=None, use_sudo=False):
