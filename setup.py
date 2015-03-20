@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='gitric',
-    version='0.2',
+    version='0.3',
     description='simple git-based deployment for fabric',
     author='Dan Bravender',
     author_email='dan.bravender@gmail.com',
