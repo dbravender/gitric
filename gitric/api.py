@@ -116,7 +116,7 @@ def git_is_dirty(ignore_untracked_files):
 
 
 def init_bluegreen():
-    require('bluegreen_root')
+    require('bluegreen_root', 'bluegreen_ports')
     env.green_path = posixpath.join(env.bluegreen_root, 'green')
     env.blue_path = posixpath.join(env.bluegreen_root, 'blue')
     env.next_path_abs = posixpath.join(env.bluegreen_root, 'next')
