@@ -1,12 +1,13 @@
 from __future__ import with_statement
 
 import os
+import re
 
+from fabric.api import cd, run, puts, sudo, task, abort, local, require
 from fabric.state import env
-from fabric.api import (local, run, sudo, abort, task, cd, puts, require)
-from fabric.context_managers import settings
-from fabric.contrib.files import exists
 from fabric.colors import green
+from fabric.contrib.files import exists
+from fabric.context_managers import settings
 
 
 @task
@@ -96,6 +97,77 @@ def git_reset(repo_path, commit=None, use_sudo=False):
     with cd(repo_path):
         func = sudo if use_sudo else run
         func('git reset --hard %s' % commit)
+
+
+def git_local_submodules(commit=None):
+    """ get all submodules in local repository """
+    modules_path = [x.split(' ')[1] for x in local(
+        "git submodule --quiet foreach 'echo $name $path $sha1 $toplevel'", capture=True).split('\n')]
+
+    # use specified commit or HEAD
+    commit = commit or git_head_rev()
+    submodules = {}  # key is module path, value is module revision which is corresponding with parent commit.
+    for module_path in modules_path:
+        module_rev = re.compile(r'\s+?').split(local('git ls-tree %s %s' % (commit, module_path), capture=True))[2]
+        submodules[module_path] = module_rev
+    return submodules
+
+
+def git_seed_submodule(repo_path, submodule_path, commit, ignore_untracked_files=False, use_sudo=False):
+
+    # check if the local repository is dirty
+    dirty_working_copy = git_is_dirty(ignore_untracked_files)
+    if dirty_working_copy:
+        abort(
+            'Working copy is dirty. This check can be overridden by\n'
+            'importing gitric.api.allow_dirty and adding allow_dirty to your '
+            'call.')
+
+    # check if the remote repository exists and create it if necessary
+    git_init(repo_path, use_sudo=use_sudo)
+
+    # push the commit to the remote repository
+    #
+    # (note that pushing to the master branch will not change the contents
+    # of the working directory)
+
+    puts(green('Pushing commit ') + commit)
+
+    with settings(warn_only=True):
+        force = ('gitric_force_push' in env) and '-f' or ''
+        push = local(
+            'git submodule --quiet foreach \'[ $path != "%s" ] || git push git+ssh://%s@%s:%s%s %s:refs/heads/master %s\'' % (
+                submodule_path, env.user, env.host, env.port, repo_path, commit, force))
+
+    if push.failed:
+        abort(
+            '%s is a non-fast-forward\n'
+            'push. The seed will abort so you don\'t lose information. '
+            'If you are doing this\nintentionally import '
+            'gitric.api.force_push and add it to your call.' % commit)
+
+
+def git_seed_submodules(repo_path, commit=None, ignore_untracked_files=False, use_sudo=False):
+    """ seed submodules in a git repository (and create if necessary) [remote] """
+    submodules = git_local_submodules(commit)
+    for path in submodules:
+        commit = submodules[path]
+        puts(green('Pushing submodule ') + path)
+        git_seed_submodule(repo_path + os.path.sep + path,
+                           path, commit, ignore_untracked_files=ignore_untracked_files, use_sudo=use_sudo)
+
+
+def git_reset_submodules(repo_path, commit=None, use_sudo=False):
+    """ reset submodules in the working directory to a specific commit [remote] """
+
+    submodules = git_local_submodules(commit)
+    for path in submodules:
+        rev = submodules[path]
+        puts(green('Resetting submodule ' + path + ' to commit ') + rev)
+        # reset the repository and working directory
+        with cd(repo_path + os.path.sep + path):
+            func = sudo if use_sudo else run
+            func('git reset --hard %s' % rev)
 
 
 def git_head_rev():
