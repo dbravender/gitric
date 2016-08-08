@@ -47,7 +47,7 @@ def git_init(repo_path, use_sudo=False):
 
 
 def git_seed(repo_path, commit=None, ignore_untracked_files=False,
-             use_sudo=False):
+             use_sudo=False, submodules=False):
     """ seed a git repository (and create if necessary) [remote] """
 
     # check if the local repository is dirty
@@ -84,8 +84,11 @@ def git_seed(repo_path, commit=None, ignore_untracked_files=False,
             'If you are doing this\nintentionally import '
             'gitric.api.force_push and add it to your call.' % commit)
 
+    if submodules:
+        git_seed_submodules(repo_path, commit, ignore_untracked_files, use_sudo)
 
-def git_reset(repo_path, commit=None, use_sudo=False):
+
+def git_reset(repo_path, commit=None, use_sudo=False, submodules=False):
     """ reset the working directory to a specific commit [remote] """
 
     # use specified commit or HEAD
@@ -97,6 +100,9 @@ def git_reset(repo_path, commit=None, use_sudo=False):
     with cd(repo_path):
         func = sudo if use_sudo else run
         func('git reset --hard %s' % commit)
+
+    if submodules:
+        git_reset_submodules(repo_path, commit, use_sudo)
 
 
 def git_local_submodules(commit=None):
