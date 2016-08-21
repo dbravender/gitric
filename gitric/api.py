@@ -36,9 +36,10 @@ def git_init(repo_path, use_sudo=False):
     # create repository folder if necessary
     func('mkdir -p %s' % repo_path, quiet=True)
 
-    with cd(repo_path):
+    with cd(repo_path), settings(warn_only=True):
         # initialize the remote repository
-        func('git init')
+        if func('git init').failed:
+            func('git init-db')
 
         # silence git complaints about pushes coming in on the current branch
         # the pushes only seed the immutable object store and do not modify the
