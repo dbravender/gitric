@@ -1,6 +1,7 @@
 from __future__ import with_statement
 
 import os
+from operator import itemgetter
 import re
 
 from fabric.api import cd, run, puts, sudo, task, abort, local, require
@@ -109,15 +110,15 @@ def git_reset(repo_path, commit=None, use_sudo=False, submodules=False):
 
 def git_local_submodules(commit=None):
     """ get all submodules in local repository """
-    modules_path = [x.split(' ')[1] for x in local(
+    modules_path = [itemgetter(0, 1)(x.split(' ')) for x in local(
         "git submodule --quiet foreach 'echo $name $path $sha1 $toplevel'", capture=True).split('\n')]
 
     # use specified commit or HEAD
     commit = commit or git_head_rev()
-    submodules = {}  # key is module path, value is module revision which is corresponding with parent commit.
-    for module_path in modules_path:
+    submodules = {}  # key is a tuple of (full_path, module path) value is module revision which is corresponding with parent commit.
+    for full_path, module_path in modules_path:
         module_rev = re.compile(r'\s+?').split(local('git ls-tree %s %s' % (commit, module_path), capture=True))[2]
-        submodules[module_path] = module_rev
+        submodules[(full_path, module_path)] = module_rev
     return submodules
 
 
@@ -158,22 +159,24 @@ def git_seed_submodule(repo_path, submodule_path, commit, ignore_untracked_files
 def git_seed_submodules(repo_path, commit=None, ignore_untracked_files=False, use_sudo=False):
     """ seed submodules in a git repository (and create if necessary) [remote] """
     submodules = git_local_submodules(commit)
-    for path in submodules:
-        commit = submodules[path]
+    for full_path, path in submodules:
+        commit = submodules[(full_path, path)]
         puts(green('Pushing submodule ') + path)
-        git_seed_submodule(repo_path + os.path.sep + path,
-                           path, commit, ignore_untracked_files=ignore_untracked_files, use_sudo=use_sudo)
+        git_seed_submodule(repo_path + os.path.sep + full_path,
+                           path, commit,
+                           ignore_untracked_files=ignore_untracked_files,
+                           use_sudo=use_sudo)
 
 
 def git_reset_submodules(repo_path, commit=None, use_sudo=False):
     """ reset submodules in the working directory to a specific commit [remote] """
 
     submodules = git_local_submodules(commit)
-    for path in submodules:
-        rev = submodules[path]
-        puts(green('Resetting submodule ' + path + ' to commit ') + rev)
+    for full_path, path in submodules:
+        rev = submodules[(full_path, path)]
+        puts(green('Resetting submodule ' + full_path + ' to commit ') + rev)
         # reset the repository and working directory
-        with cd(repo_path + os.path.sep + path):
+        with cd(repo_path + os.path.sep + full_path):
             func = sudo if use_sudo else run
             func('git reset --hard %s' % rev)
 
