@@ -7,6 +7,7 @@ from fabric.api import (local, run, sudo, abort, task, cd, puts, require)
 from fabric.context_managers import settings
 from fabric.contrib.files import exists
 from fabric.colors import green
+import posixpath
 
 
 @task
@@ -116,10 +117,10 @@ def git_is_dirty(ignore_untracked_files):
 
 def init_bluegreen():
     require('bluegreen_root', 'bluegreen_ports')
-    env.green_path = os.path.join(env.bluegreen_root, 'green')
-    env.blue_path = os.path.join(env.bluegreen_root, 'blue')
-    env.next_path_abs = os.path.join(env.bluegreen_root, 'next')
-    env.live_path_abs = os.path.join(env.bluegreen_root, 'live')
+    env.green_path = posixpath.join(env.bluegreen_root, 'green')
+    env.blue_path = posixpath.join(env.bluegreen_root, 'blue')
+    env.next_path_abs = posixpath.join(env.bluegreen_root, 'next')
+    env.live_path_abs = posixpath.join(env.bluegreen_root, 'live')
     run('mkdir -p %(bluegreen_root)s %(blue_path)s %(green_path)s '
         '%(blue_path)s/etc %(green_path)s/etc' % env)
     if not exists(env.live_path_abs):
@@ -128,10 +129,10 @@ def init_bluegreen():
         run('ln -s %(green_path)s %(next_path_abs)s' % env)
     env.next_path = run('readlink -f %(next_path_abs)s' % env)
     env.live_path = run('readlink -f %(live_path_abs)s' % env)
-    env.virtualenv_path = os.path.join(env.next_path, 'env')
-    env.pidfile = os.path.join(env.next_path, 'etc', 'app.pid')
-    env.nginx_conf = os.path.join(env.next_path, 'etc', 'nginx.conf')
-    env.color = os.path.basename(env.next_path)
+    env.virtualenv_path = posixpath.join(env.next_path, 'env')
+    env.pidfile = posixpath.join(env.next_path, 'etc', 'app.pid')
+    env.nginx_conf = posixpath.join(env.next_path, 'etc', 'nginx.conf')
+    env.color = posixpath.basename(env.next_path)
     env.bluegreen_port = env.bluegreen_ports.get(env.color)
 
 
