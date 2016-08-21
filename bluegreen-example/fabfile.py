@@ -27,8 +27,8 @@ def deploy(commit=None):
     if not commit:
         commit = local('git rev-parse HEAD', capture=True)
     env.repo_path = os.path.join(env.next_path, 'repo')
-    git_seed(env.repo_path, commit)
-    git_reset(env.repo_path, commit)
+    git_seed(env.repo_path, commit, submodules=True)
+    git_reset(env.repo_path, commit, submodules=True)
     run('kill $(cat %(pidfile)s) || true' % env)
     run('virtualenv %(virtualenv_path)s' % env)
     run('source %(virtualenv_path)s/bin/activate && '

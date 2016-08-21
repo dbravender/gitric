@@ -1,0 +1,3 @@
+[submodule "bluegreen-example/parrots"]
+	path = bluegreen-example/parrots
+	url = https://github.com/jmhobbs/cultofthepartyparrot.com
