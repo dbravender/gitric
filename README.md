@@ -6,7 +6,7 @@ Git pulling from a remote repository requires that you open your repository to t
 
 ## Installation ##
 
-    pip install -e  "git://github.com/dbravender/gitric.git#egg=gitric"
+    pip install gitric
 
 ## Features ##
 
