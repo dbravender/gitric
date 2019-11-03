@@ -4,7 +4,7 @@ Jinja2==2.7.3
 MarkupSafe==0.23
 Werkzeug==0.9.6
 argparse==1.2.1
-ecdsa==0.11
+ecdsa==0.13.3
 gunicorn==19.0.0
 itsdangerous==0.24
 paramiko==1.14.0
