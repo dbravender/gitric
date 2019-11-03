@@ -5,7 +5,7 @@ MarkupSafe==0.23
 Werkzeug==0.9.6
 argparse==1.2.1
 ecdsa==0.11
-gunicorn==19.0.0
+gunicorn==19.5.0
 itsdangerous==0.24
 paramiko==1.14.0
 pycrypto==2.6.1
